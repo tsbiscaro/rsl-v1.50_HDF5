@@ -1,0 +1,7 @@
+RSL requires the following packages do be installed first:
+
+flex
+libfl-dev
+libbz2-dev
+zlib1g-dev
+libhdf5-serial-dev
