@@ -191,6 +191,7 @@ float HC_F(Range x) {  /* HydroClass (Sigmet) */
 *******************************/
 float RH_F(Range x) {
   if (x == 0) return BADVAL;
+  if (x == 3) return NOECHO;
   /* return (float)(sqrt((double)((x-1.0)/253.0))); */
   return ((float)x-1.0) / 100.;
 }
@@ -207,6 +208,7 @@ float RH_F(Range x) {
 ******************************/
 float PH_F(Range x) {
   if (x == 0) return BADVAL;
+  if (x == 3) return NOECHO;
   /* Sigmet method */
   return (360.*(x-1.))/65534.;
  }
@@ -219,6 +221,7 @@ float rsl_kdp_wavelen = 0.5; /* Default radar wavelen = .5 cm.  See
 float KD_F(Range x)
 {
   if (x == 0) return BADVAL;
+  if (x == 3) return NOECHO;
   /* Sigmet method */
   return ((float)x-32768.)/100.;
 }
@@ -227,6 +230,7 @@ float KD_F(Range x)
 float NP_F(Range x)
 {
   if (x == 0) return BADVAL;
+  if (x == 3) return NOECHO;
   return (float)(x - 1) / 100.;
 }
 
@@ -234,12 +238,14 @@ float NP_F(Range x)
 float SD_F(Range x)
 {
   if (x == 0) return BADVAL;
+  if (x == 3) return NOECHO;
   return ((float)x-1.) / 100.;
 }
 
 /* Signal to Noise Ratio */
 float SN_F(Range x) {
   if (x == 0) return BADVAL;
+  if (x == 3) return NOECHO;
   return ((float)x-32768.)/100.;
 }
 
@@ -247,6 +253,7 @@ float SN_F(Range x) {
 float SQ_F(Range x)
 {
   if (x == 0) return BADVAL;
+  if (x == 3) return NOECHO;
   return (float)(x-1) / 65533.;
 }
 
@@ -332,6 +339,7 @@ Range DR_INVF(float x)     /* Differential reflectivity */
 Range HC_INVF(float x)  /* HydroClass (Sigmet) */
 {
   if (x == BADVAL) return (Range)0;
+  if (x == NOECHO) return (Range)3;
   return (Range)(x + 0.5); /* Round */
 }
 
@@ -357,6 +365,7 @@ Range LR_INVF(float x) /* MCTEX */
 /* RH_INVF for 1 or 2 byte data. */
 Range RH_INVF(float x) {
   if (x == BADVAL) return (Range)0;
+  if (x == NOECHO) return (Range)3;
   /* return (Range)(x * x * 253.0 + 1.0 + 0.5); */
   return (Range)(x * 100. + 1. +.5);
 }
@@ -373,6 +382,7 @@ Range RH_INVF(float x) {
 *******************************/
 Range PH_INVF(float x) {
   if (x == BADVAL) return (Range)0;
+  if (x == NOECHO) return (Range)3;
   return (Range)(x*65534./360. + 1.0 + 0.5);
 }
 
@@ -380,6 +390,7 @@ Range PH_INVF(float x) {
 /* KD_INVF for 1 or 2 byte data. */
 Range KD_INVF(float x) {
   if (x == BADVAL) return (Range)0;
+  if (x == NOECHO) return (Range)3;
   return (Range)(x * 100. + 32768. + 0.5);
 }
 
@@ -387,11 +398,13 @@ Range KD_INVF(float x) {
 Range SD_INVF(float x)
 {
   if (x == BADVAL) return (Range)0;
+  if (x == NOECHO) return (Range)3;
   return (Range)(x * 100. + 1. + .5);
 }
 
 /* Signal to Noise Ratio */
 Range SN_INVF(float x) {
+  if (x == NOECHO) return (Range)3;
   if (x == BADVAL) return (Range)0;
   return (Range)(x * 100. + 32768. + 0.5);
 }
@@ -399,6 +412,7 @@ Range SN_INVF(float x) {
 /* Signal Quality Index */
 Range SQ_INVF(float x)
 {
+  if (x == NOECHO) return (Range)3;
   if (x == BADVAL) return (Range)0;
   return (Range)(x * 65533. + 1. +.5);
 }
@@ -406,6 +420,7 @@ Range SQ_INVF(float x)
 /* Normalized Coherent Power (DORADE) */
 Range NP_INVF(float x)
 {
+  if (x == NOECHO) return (Range)3;
   if (x == BADVAL) return (0);
   return (Range)(x * 100. + 1.);
 }

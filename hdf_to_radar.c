@@ -662,7 +662,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
     time;
   int status;
   int variavel;
-  
+  int factor_sample;
   int n_sweep, n_ray, n_bin, n_volume;
   char grp_name[MAX_HDF_STR];
   int rank;
@@ -769,6 +769,23 @@ Radar *RSL_hdf5_to_radar(char *infile)
    attr = H5Aopen(how, "elevation_beam", H5P_DEFAULT);
    status = H5Aread(attr, H5T_NATIVE_DOUBLE, &verti_beam);
    H5Aclose(attr);
+
+
+   attr = H5Aopen(how, "software", H5P_DEFAULT);
+   memtype = H5Aget_type(attr);
+   memset(version_str, 0, sizeof(version_str));
+   status = H5Aread(attr, memtype, &version_str);
+   H5Tclose(memtype);
+   H5Aclose(attr);
+   if (0 == strncmp(version_str, "Rainbow", 7))
+      {
+      factor_sample = 0;
+      }
+   else
+      {
+      factor_sample = 1;
+      }
+   
 
    attr = H5Aopen(where, "height", H5P_DEFAULT);
    status = H5Aread(attr, H5T_NATIVE_DOUBLE, &height);
@@ -1145,8 +1162,14 @@ Radar *RSL_hdf5_to_radar(char *infile)
             ray->h.sec = cal_time->tm_sec;
             
             ray->h.ray_num = n_ray + 1;
-            ray->h.gate_size = r_step;
-	    ray->h.gate_size = r_step*r_sample;
+            if (0 == factor_sample)
+               {
+               ray->h.gate_size = r_step;
+               }
+            else
+               {
+               ray->h.gate_size = r_step*r_sample;
+               }
             ray->h.range_bin1 = r_start;
             ray->h.elev_num = volume->sweep[n_sweep]->h.sweep_num;
 	    ray->h.elev = (float) ((ray_elev0[n_ray] + ray_elev1[n_ray])/2);
