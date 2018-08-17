@@ -777,6 +777,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
    status = H5Aread(attr, memtype, &version_str);
    H5Tclose(memtype);
    H5Aclose(attr);
+   /*erro no range sample*/
    if (0 == strncmp(version_str, "Rainbow", 7))
       {
       factor_sample = 0;
