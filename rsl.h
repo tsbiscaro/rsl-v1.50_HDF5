@@ -573,6 +573,7 @@ Radar *RSL_toga_to_radar(char *infile);
 Radar *RSL_uf_to_radar(char *infile);
 Radar *RSL_uf_to_radar_fp(FILE *fp);
 Radar *RSL_wsr88d_to_radar(char *infile, char *call_or_first_tape_file);
+Radar *RSL_hdf5_to_radar(char *infile);
 
 Volume *RSL_clear_volume(Volume *v);
 Volume *RSL_copy_volume(Volume *v);
