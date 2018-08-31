@@ -1,8 +1,8 @@
 ## Process w/ automake.  Or, autoreconf; make ##
+ACLOCAL_AMFLAGS = -I m4
 AUTOMAKE_OPTIONS = foreign
 SUBDIRS = . colors doc examples wsr88d_decode_ar2v
 INCLUDES = -I. -I$(srcdir) -I$(prefix)/include -I$(prefix)/toolkit/include
-
 includedir = $(prefix)/include 
 colordir = $(libdir)/colors
 
