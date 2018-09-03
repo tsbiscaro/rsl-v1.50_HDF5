@@ -1,0 +1,52 @@
+RSL requires the following packages do be installed first:
+
+flex
+libfl-dev
+libbz2-dev
+zlib1g-dev
+libhdf5-serial-dev
+autoconf
+automake
+m4
+
+How to compile:
+
+Run the script pre_compile.sh
+
+chmod +x pre_compile.sh
+./pre_compile.sh
+
+Check where the files libhdf5.a and libhdf5_hl.a are located (e.g.: /usr/lib/x86_64-linux-gnu/hdf5/serial/)
+
+To find them run (as root):
+updatedb
+locate libhdf5.a
+locate libhdf5_hl.a
+
+
+Check where the hdf5.h file is located (e.g.: /usr/include/hdf5/serial/)
+
+To find it run (as root):
+updatedb
+locate hdf5.h
+
+Export the paths to the CFLAGS environment variable:
+
+export CFLAGS='-I/usr/include/hdf5/serial/ -L/usr/lib/x86_64-linux-gnu/hdf5/serial/'
+
+run configure - if you want to install as single user at the same directory use:
+
+./configure --prefix=`pwd`
+
+run make:
+
+make
+
+install:
+
+make install
+
+export the RSL path to your bashrc file: 
+
+echo "export LD_LIBRARY_PATH=`pwd`/lib" >> ~/.bashrc
+echo "export PATH=$PATH:`pwd`/bin" >> ~/.bashrc
