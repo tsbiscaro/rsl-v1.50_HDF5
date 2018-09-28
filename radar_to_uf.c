@@ -283,29 +283,17 @@ void RSL_radar_to_uf_fp(Radar *r, FILE *fp)
         if (little_endian()) swap2(&uf_ma[14], 8/2);
         /* Convert decimal lat/lon to d:m:s */
 
-        if (ray->h.lat != 0.0) {
-          degree = (int)ray->h.lat;
-          minute = (int)((ray->h.lat - degree) * 60);
-          second = (ray->h.lat - degree - minute/60.0) * 3600.0;
-        } else {
-          degree = r->h.latd;
-          minute = r->h.latm;
-          second = r->h.lats;
-        }
+        degree = r->h.latd;
+        minute = r->h.latm;
+        second = r->h.lats;
         uf_ma[18] = degree;
         uf_ma[19] = minute;
         if (second > 0.0) uf_ma[20] = second*64 + 0.5;
         else uf_ma[20] = second*64 - 0.5;
 
-        if (ray->h.lon != 0.0) {
-          degree = (int)ray->h.lon;
-          minute = (int)((ray->h.lon - degree) * 60);
-          second = (ray->h.lon - degree - minute/60.0) * 3600.0;
-        } else {
-          degree = r->h.lond;
-          minute = r->h.lonm;
-          second = r->h.lons;
-        }
+        degree = r->h.lond;
+        minute = r->h.lonm;
+        second = r->h.lons;
         uf_ma[21] = degree;
         uf_ma[22] = minute;
         if (second > 0.0) uf_ma[23] = second*64 + 0.5;
