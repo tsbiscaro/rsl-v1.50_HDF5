@@ -784,6 +784,7 @@ RSL_nsig_to_radar
 
           /* Compute mean elevation angle for ray. */
           elev1 = nsig_from_bang(ray_p->h.beg_elev);
+#if 0          
           elev2 = nsig_from_bang(ray_p->h.end_elev);
           /*          printf("elev1, %f, elev2 %f\n", elev1, elev2); */
           if(elev1 > elev2)
@@ -794,7 +795,10 @@ RSL_nsig_to_radar
             if((elev2 - elev1) > 180.0) elev2 -= 360.0;
 
           elev1 = (elev1 + elev2) / 2.0;
-          if (elev1 > 360) elev1 -= 360;
+
+#endif
+          /*elevation must be between -2 and 90 deg usually for volscans*/
+          if (elev1 > 90) elev1 -= 360;
           ray->h.elev = elev1;
 
           /* From the extended header information, we learn the following. */
