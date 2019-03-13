@@ -700,7 +700,12 @@ RSL_nsig_to_radar
       sweep->h.vert_half_bw = vert_half_bw;
       sweep->h.horz_half_bw = horz_half_bw;
       fix_angle = nsig_from_bang(nsig_sweep[itype]->idh.fix_ang);
-      if (radar->h.scan_mode == PPI) sweep->h.elev = fix_angle;
+      if (radar->h.scan_mode == PPI)
+         {
+         if (fix_angle > 90) fix_angle -= 360;
+         sweep->h.elev = fix_angle;
+         }
+      
       else sweep->h.azimuth = fix_angle;
       
       for(j = 0; j < num_rays; j++)

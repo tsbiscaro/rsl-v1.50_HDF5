@@ -355,7 +355,14 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
       status = H5Aread(attr, H5T_NATIVE_DOUBLE, &nyq_vel);
       H5Aclose(attr);
 
-      attr = H5Aopen(how, "startelA", H5P_DEFAULT);
+      if (H5Aexists(how, "startelA") > 0)
+         {
+         attr = H5Aopen(how, "startelA", H5P_DEFAULT);
+         }
+      else
+         {
+         attr = H5Aopen(how, "elangles", H5P_DEFAULT);         
+         }
       space = H5Aget_space (attr);
       NRAYS = H5Sget_simple_extent_npoints(space);
       elAngleIni = (double *) calloc(NRAYS, sizeof(double));
@@ -365,7 +372,14 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
       H5Sclose (space);
       H5Aclose(attr);
 
-      attr = H5Aopen(how, "stopelA", H5P_DEFAULT);
+      if (H5Aexists(how, "stopelA") > 0)
+         {
+         attr = H5Aopen(how, "stopelA", H5P_DEFAULT);
+         }
+      else
+         {
+         attr = H5Aopen(how, "elangles", H5P_DEFAULT);         
+         }
       space = H5Aget_space (attr);
       NRAYS = H5Sget_simple_extent_npoints(space);
       elAngleEnd = (double *) calloc(NRAYS, sizeof(double));
@@ -1249,6 +1263,14 @@ int return_type_var(char *varname)
       return VR_INDEX;
       }
    if (0 == strncmp(varname, "WRAD", strlen(varname)))
+      {
+      return SW_INDEX;
+      }
+   if (0 == strncmp(varname, "VRADH", strlen(varname)))
+      {
+      return VR_INDEX;
+      }
+   if (0 == strncmp(varname, "WRADH", strlen(varname)))
       {
       return SW_INDEX;
       }
