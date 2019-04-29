@@ -355,39 +355,6 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
       status = H5Aread(attr, H5T_NATIVE_DOUBLE, &nyq_vel);
       H5Aclose(attr);
 
-      if (H5Aexists(how, "startelA") > 0)
-         {
-         attr = H5Aopen(how, "startelA", H5P_DEFAULT);
-         }
-      else
-         {
-         attr = H5Aopen(how, "elangles", H5P_DEFAULT);         
-         }
-      space = H5Aget_space (attr);
-      NRAYS = H5Sget_simple_extent_npoints(space);
-      elAngleIni = (double *) calloc(NRAYS, sizeof(double));
-      memtype = H5Tcopy(H5T_IEEE_F64LE);
-      status = H5Aread (attr, memtype, elAngleIni);
-      H5Tclose(memtype);
-      H5Sclose (space);
-      H5Aclose(attr);
-
-      if (H5Aexists(how, "stopelA") > 0)
-         {
-         attr = H5Aopen(how, "stopelA", H5P_DEFAULT);
-         }
-      else
-         {
-         attr = H5Aopen(how, "elangles", H5P_DEFAULT);         
-         }
-      space = H5Aget_space (attr);
-      NRAYS = H5Sget_simple_extent_npoints(space);
-      elAngleEnd = (double *) calloc(NRAYS, sizeof(double));
-      memtype = H5Tcopy(H5T_IEEE_F64LE);
-      status = H5Aread (attr, memtype, elAngleEnd);
-      H5Tclose(memtype);
-      H5Sclose (space);
-      H5Aclose(attr);
 
       attr = H5Aopen(how, "startazA", H5P_DEFAULT);
       space = H5Aget_space (attr);
@@ -588,7 +555,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
             ray->h.gate_size = r_step;
             ray->h.range_bin1 = r_start;
             ray->h.elev_num = volume[n_volume]->sweep[n_sweep]->h.sweep_num;
-            ray->h.elev = (elAngleIni[n_ray] + elAngleEnd[n_ray])/2;
+            ray->h.elev = elev;
             ray->h.azimuth = azAngleIni[n_ray];
             ray->h.prf = prf;
             ray->h.prf2 = prf2;
