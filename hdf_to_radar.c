@@ -1252,7 +1252,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
     time;
   int status;
   int variavel;
-  int factor_sample;
+  int factor_sample = 0;
   int n_sweep, n_ray, n_bin, n_volume;
   char grp_name[MAX_HDF_STR];
   int rank;
@@ -1377,16 +1377,18 @@ Radar *RSL_hdf5_to_radar(char *infile)
    H5Tclose(memtype);
    H5Aclose(attr);
    /*erro no range sample*/
+
+#if 0   
    if (0 == strncmp(version_str, "Rainbow", 7))
       {
       factor_sample = 0;
       }
    else
       {
-      factor_sample = 1;
+      factor_sample = 0;
       }
    
-
+#endif
    attr = H5Aopen(where, "height", H5P_DEFAULT);
    status = H5Aread(attr, H5T_NATIVE_DOUBLE, &height);
    H5Aclose(attr);
