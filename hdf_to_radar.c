@@ -50,18 +50,21 @@ Cachoeira Paulista/SP 12630000 Brazil
 /* RSL function and structure definitions. */
 #include "rsl.h"
 
-#define DEFINED_VOLUMES 9
+#define DEFINED_VOLUMES 12
 #define VERSION1_8_0
 #define MAX_HDF_STR 255
 #define MAXSWEEPS 40
 
 int return_vartype(char *var)
    {
-     char *nome_var[DEFINED_VOLUMES] = {"Z", "UZ", "V", "W", "ZDR", "PhiDP", 
-                                        "uPhiDP", "KDP", "RhoHV"};
+     char *nome_var[DEFINED_VOLUMES] = {"Z", "UZ", "V",
+                                        "W", "ZDR", "PhiDP", 
+                                        "PHIDP", "UPHIDP", "uPhiDP",
+                                        "KDP", "RhoHV", "RHOHV"};
      int vars[DEFINED_VOLUMES] = {CZ_INDEX, DZ_INDEX, VR_INDEX, 
                                   SW_INDEX, DR_INDEX, PH_INDEX,
-                                  NP_INDEX, KD_INDEX, RH_INDEX};
+                                  PH_INDEX, NP_INDEX, NP_INDEX,
+                                  KD_INDEX, RH_INDEX, RH_INDEX};
    int i;
    
    for (i = 0; i < DEFINED_VOLUMES; i++)
@@ -161,11 +164,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
       {
       memset(grp_name, 0, sizeof(grp_name));
       sprintf(grp_name, "dataset%d", n_sweep + 1);
-#ifdef VERSION1_8_0
       scan = H5Gopen(file, grp_name, H5P_DEFAULT);
-#else
-      scan = H5Gopen(file, grp_name);
-#endif
       if (scan < 0)
          {
          NSWEEPS = n_sweep;
@@ -174,15 +173,9 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
       }
      
   
-#ifdef VERSION1_8_0   
   how = H5Gopen(file, "/how", H5P_DEFAULT);
   what = H5Gopen(file, "/what", H5P_DEFAULT);
   where = H5Gopen(file, "/where", H5P_DEFAULT);
-#else
-   how = H5Gopen(file, "/how");
-   what = H5Gopen(file, "/what");
-   where = H5Gopen(file, "/where");
-#endif
 
 
    attr = H5Aopen(what, "version", H5P_DEFAULT);
@@ -297,25 +290,15 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
       {
       memset(grp_name, 0, sizeof(grp_name));
       sprintf(grp_name, "dataset%d", n_sweep + 1);
-#ifdef VERSION1_8_0
       scan = H5Gopen(file, grp_name, H5P_DEFAULT);
-#else
-      scan = H5Gopen(file, grp_name);
-#endif
       if (scan < 0)
          {
          break;
          }
       
-#ifdef VERSION1_8_0   
       how = H5Gopen(scan, "how", H5P_DEFAULT);
       what = H5Gopen(scan, "what", H5P_DEFAULT);
       where = H5Gopen(scan, "where", H5P_DEFAULT);
-#else
-      how = H5Gopen(scan, "how");
-      what = H5Gopen(scan, "what");
-      where = H5Gopen(scan, "where");
-#endif
       
       attr = H5Aopen(where, "elangle", H5P_DEFAULT);
       status = H5Aread(attr, H5T_NATIVE_DOUBLE, &elev);
@@ -357,23 +340,23 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
 
 
       attr = H5Aopen(how, "startazA", H5P_DEFAULT);
-      space = H5Aget_space (attr);
-      NRAYS = H5Sget_simple_extent_npoints(space);
+      //      space = H5Aget_space (attr);
+      //      NRAYS = H5Sget_simple_extent_npoints(space);
       azAngleIni = (double *) calloc(NRAYS, sizeof(double));
       memtype = H5Tcopy(H5T_IEEE_F64LE);
       status = H5Aread (attr, memtype, azAngleIni);
       H5Tclose(memtype);
-      H5Sclose (space);
+      //      H5Sclose (space);
       H5Aclose(attr);
       
       attr = H5Aopen(how, "stopazA", H5P_DEFAULT);
-      space = H5Aget_space (attr);
-      NRAYS = H5Sget_simple_extent_npoints(space);
+      //      space = H5Aget_space (attr);
+      //      NRAYS = H5Sget_simple_extent_npoints(space);
       azAngleEnd = (double *) calloc(NRAYS, sizeof(double));
       memtype = H5Tcopy(H5T_IEEE_F64LE);
       status = H5Aread (attr, memtype, azAngleEnd);
       H5Tclose(memtype);
-      H5Sclose (space);
+      //      H5Sclose (space);
       H5Aclose(attr);
       
       H5Gclose(how);
@@ -401,11 +384,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
          {
          memset(grp_name, 0, sizeof(grp_name));
          sprintf(grp_name, "data%d", n_volume + 1);
-#ifdef VERSION1_8_0
          vol = H5Gopen(scan, grp_name, H5P_DEFAULT);
-#else
-         vol = H5Gopen(scan, grp_name);
-#endif
 	 if (vol < 0)
             {
             break;
@@ -422,11 +401,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
          volume[n_volume]->sweep[n_sweep]->h.nrays = NRAYS;
 	 volume[n_volume]->sweep[n_sweep]->h.elev = elev;
 
-#ifdef VERSION1_8_0   
          what = H5Gopen(vol, "what", H5P_DEFAULT);
-#else
-         what = H5Gopen(vol, "what");
-#endif   
             
          attr = H5Aopen(what, "quantity", H5P_DEFAULT);
          memtype = H5Aget_type(attr);
@@ -557,6 +532,12 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
             ray->h.elev_num = volume[n_volume]->sweep[n_sweep]->h.sweep_num;
             ray->h.elev = elev;
             ray->h.azimuth = azAngleIni[n_ray];
+            /*Correcao para os dados de LONTRAS
+            ray->h.azimuth += 21;
+            if (ray->h.azimuth > 360)
+               ray->h.azimuth -= 360;
+            fim da correcao*/
+            
             ray->h.prf = prf;
             ray->h.prf2 = prf2;
             ray->h.pulse_width = pulsewidth;
@@ -722,11 +703,7 @@ Radar *RSL_hdf5_ODIM_EDGE55_to_radar(char *infile)
       {
       memset(grp_name, 0, sizeof(grp_name));
       sprintf(grp_name, "dataset%d", n_sweep + 1);
-#ifdef VERSION1_8_0
       scan = H5Gopen(file, grp_name, H5P_DEFAULT);
-#else
-      scan = H5Gopen(file, grp_name);
-#endif
       if (scan < 0)
          {
          NSWEEPS = n_sweep;
@@ -735,15 +712,9 @@ Radar *RSL_hdf5_ODIM_EDGE55_to_radar(char *infile)
       }
      
   
-#ifdef VERSION1_8_0   
   how = H5Gopen(file, "/how", H5P_DEFAULT);
   what = H5Gopen(file, "/what", H5P_DEFAULT);
   where = H5Gopen(file, "/where", H5P_DEFAULT);
-#else
-   how = H5Gopen(file, "/how");
-   what = H5Gopen(file, "/what");
-   where = H5Gopen(file, "/where");
-#endif
 
 
    attr = H5Aopen(what, "version", H5P_DEFAULT);
@@ -854,25 +825,15 @@ Radar *RSL_hdf5_ODIM_EDGE55_to_radar(char *infile)
       {
       memset(grp_name, 0, sizeof(grp_name));
       sprintf(grp_name, "dataset%d", n_sweep + 1);
-#ifdef VERSION1_8_0
       scan = H5Gopen(file, grp_name, H5P_DEFAULT);
-#else
-      scan = H5Gopen(file, grp_name);
-#endif
       if (scan < 0)
          {
          break;
          }
       
-#ifdef VERSION1_8_0   
       how = H5Gopen(scan, "how", H5P_DEFAULT);
       what = H5Gopen(scan, "what", H5P_DEFAULT);
       where = H5Gopen(scan, "where", H5P_DEFAULT);
-#else
-      how = H5Gopen(scan, "how");
-      what = H5Gopen(scan, "what");
-      where = H5Gopen(scan, "where");
-#endif
       
       attr = H5Aopen(where, "elangle", H5P_DEFAULT);
       status = H5Aread(attr, H5T_NATIVE_DOUBLE, &elev);
@@ -949,11 +910,7 @@ Radar *RSL_hdf5_ODIM_EDGE55_to_radar(char *infile)
          {
          memset(grp_name, 0, sizeof(grp_name));
          sprintf(grp_name, "data%d", n_volume + 1);
-#ifdef VERSION1_8_0
          vol = H5Gopen(scan, grp_name, H5P_DEFAULT);
-#else
-         vol = H5Gopen(scan, grp_name);
-#endif
 	 if (vol < 0)
             {
             break;
@@ -970,13 +927,8 @@ Radar *RSL_hdf5_ODIM_EDGE55_to_radar(char *infile)
          volume[n_volume]->sweep[n_sweep]->h.nrays = NRAYS;
 	 volume[n_volume]->sweep[n_sweep]->h.elev = elev;
 
-#ifdef VERSION1_8_0   
          how = H5Gopen(vol, "how", H5P_DEFAULT);
          what = H5Gopen(vol, "what", H5P_DEFAULT);
-#else
-         how = H5Gopen(vol, "how");
-         what = H5Gopen(vol, "what");
-#endif   
             
          attr = H5Aopen(what, "quantity", H5P_DEFAULT);
          memtype = H5Aget_type(attr);
@@ -1018,23 +970,23 @@ Radar *RSL_hdf5_ODIM_EDGE55_to_radar(char *infile)
          H5Gclose(what);
             
          attr = H5Aopen(how, "startazA", H5P_DEFAULT);
-         space = H5Aget_space (attr);
-         NRAYS = H5Sget_simple_extent_npoints(space);
+	 //         space = H5Aget_space (attr);
+	 //         NRAYS = H5Sget_simple_extent_npoints(space);
          azAngleIni = (double *) calloc(NRAYS, sizeof(double));
          memtype = H5Tcopy(H5T_IEEE_F64LE);
          status = H5Aread (attr, memtype, azAngleIni);
          H5Tclose(memtype);
-         H5Sclose (space);
+	 //         H5Sclose (space);
          H5Aclose(attr);
             
          attr = H5Aopen(how, "stopazA", H5P_DEFAULT);
-         space = H5Aget_space (attr);
-         NRAYS = H5Sget_simple_extent_npoints(space);
+	 //         space = H5Aget_space (attr);
+	 //         NRAYS = H5Sget_simple_extent_npoints(space);
          azAngleEnd = (double *) calloc(NRAYS, sizeof(double));
          memtype = H5Tcopy(H5T_IEEE_F64LE);
          status = H5Aread (attr, memtype, azAngleEnd);
          H5Tclose(memtype);
-         H5Sclose (space);
+	 //         H5Sclose (space);
          H5Aclose(attr);
          H5Gclose(how);
             
@@ -1324,15 +1276,9 @@ Radar *RSL_hdf5_to_radar(char *infile)
    radar = RSL_new_radar(MAX_RADAR_VOLUMES);
 
    /*Read information about the beam width*/
-#ifdef VERSION1_8_0   
    how = H5Gopen(file, "/how", H5P_DEFAULT);
    what = H5Gopen(file, "/what", H5P_DEFAULT);
    where = H5Gopen(file, "/where", H5P_DEFAULT);
-#else
-   how = H5Gopen(file, "/how");
-   what = H5Gopen(file, "/what");
-   where = H5Gopen(file, "/where");
-#endif
 
 
    /*verifica se e HDF ODIM ou GAMIC*/
@@ -1471,11 +1417,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
    - locates the number of scans
    - locates the first scan and finds the total volume number
    */
-#ifdef VERSION1_8_0   
    what = H5Gopen(file, "/what", H5P_DEFAULT);
-#else
-   what = H5Gopen(file, "/what");
-#endif
    attr = H5Aopen(what, "sets", H5P_DEFAULT);
    status = H5Aread(attr, H5T_NATIVE_INT, &NSWEEPS);
    H5Aclose(attr);
@@ -1485,21 +1427,13 @@ Radar *RSL_hdf5_to_radar(char *infile)
       {
       memset(grp_name, 0, sizeof(grp_name));
       sprintf(grp_name, "scan%d", n_sweep);
-#ifdef VERSION1_8_0
       group = H5Gopen(file, grp_name, H5P_DEFAULT);
-#else
-      group = H5Gopen(file, grp_name);
-#endif
       if (group >= 0)
          {
          NVOLUMES = 0;
          for (n_volume = 0; n_volume < DEFINED_VOLUMES; n_volume++)
             {
-#ifdef VERSION1_8_0
             vol = H5Dopen(group, moments[n_volume], H5P_DEFAULT);
-#else
-            vol = H5Dopen(group, moments[n_volume]);
-#endif
             if (vol >= 0)
                {
                attr = H5Aopen(vol, "moment", H5P_DEFAULT);
@@ -1569,7 +1503,6 @@ Radar *RSL_hdf5_to_radar(char *infile)
          {
          memset(grp_name, 0, sizeof(grp_name));
          sprintf(grp_name, "scan%d", n_sweep);
-#ifdef VERSION1_8_0         
          group = H5Gopen(file, grp_name, H5P_DEFAULT);
          if (group < 0)
             continue;
@@ -1592,30 +1525,6 @@ Radar *RSL_hdf5_to_radar(char *infile)
             H5Dclose(header);
             continue;
             }
-#else
-         group = H5Gopen(file, grp_name);
-         if (group < 0)
-            continue;
-         
-         vol = H5Dopen(group, moments[n_volume]);
-         if (vol < 0)
-            continue;
-         
-         header = H5Dopen(group, "ray_header");
-         if (header < 0)
-            {
-            H5Dclose(vol);
-            continue;
-            }
-         
-         how = H5Gopen(group, "how");
-         if (how < 0)
-            {
-            H5Dclose(vol);
-            H5Dclose(header);
-            continue;
-            }
-#endif            
          /*how to read the data...*/
          dataspace = H5Dget_space (vol); /* dataspace handle */
          rank = H5Sget_simple_extent_ndims (dataspace);
