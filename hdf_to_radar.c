@@ -1,7 +1,7 @@
 /*
 HDF5 handling added by:
 
-Thiago S. Biscaro - thiago.biscaro@cptec.inpe.br
+Thiago S. Biscaro - thiago.biscaro@inpe.br
 
 Divisao de Satelites e Sistemas Ambientais
 Centro de Previsao de Tempo e Estudos Climaticos
