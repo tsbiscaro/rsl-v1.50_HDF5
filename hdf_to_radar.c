@@ -50,7 +50,7 @@ Cachoeira Paulista/SP 12630000 Brazil
 /* RSL function and structure definitions. */
 #include "rsl.h"
 
-#define DEFINED_VOLUMES 12
+#define DEFINED_VOLUMES 14
 #define VERSION1_8_0
 #define MAX_HDF_STR 255
 #define MAXSWEEPS 40
@@ -1153,46 +1153,88 @@ Radar *RSL_hdf5_ODIM_EDGE55_to_radar(char *infile)
 
 int return_type_var(char *varname)
    {
-   if (0 == strncmp(varname, "RHOHV", strlen(varname)))
+   int i;   
+   if (0 == strcmp(varname, "RHOHV"))
       {
       return RH_INDEX;
       }
-   if (0 == strncmp(varname, "ZDR", strlen(varname)))
+   if (0 == strcmp(varname, "RhoHV"))
+      {
+      return RH_INDEX;
+      }
+   if (0 == strcmp(varname, "ZDR"))
       {
       return DR_INDEX;
       }
-   if (0 == strncmp(varname, "PHIDP", strlen(varname)))
+   if (0 == strcmp(varname, "PHIDP"))
       {
       return PH_INDEX;
       }
-   if (0 == strncmp(varname, "KDP", strlen(varname)))
+   if (0 == strcmp(varname, "PhiDP"))
+      {
+      return PH_INDEX;
+      }
+   if (0 == strcmp(varname, "uPHIDP"))
+      {
+      return PH_INDEX;
+      }
+   if (0 == strcmp(varname, "uPhiDP"))
+      {
+      return PH_INDEX;
+      }
+   if (0 == strcmp(varname, "KDP"))
       {
       return KD_INDEX;
       }
-   if (0 == strncmp(varname, "TH", strlen(varname)))
+   if (0 == strcmp(varname, "TH"))
       {
       return DZ_INDEX;
       }
-   if (0 == strncmp(varname, "DBZH", strlen(varname)))
+   if (0 == strcmp(varname, "DBZH"))
       {
       return CZ_INDEX;
       }
-   if (0 == strncmp(varname, "VRAD", strlen(varname)))
+   if (0 == strcmp(varname, "Z"))
+      {
+      return CZ_INDEX;
+      }
+   if (0 == strcmp(varname, "UZ"))
+      {
+      return DZ_INDEX;
+      }
+   if (0 == strcmp(varname, "UZh"))
+      {
+      return DZ_INDEX;
+      }
+   if (0 == strcmp(varname, "VRAD"))
       {
       return VR_INDEX;
       }
-   if (0 == strncmp(varname, "WRAD", strlen(varname)))
-      {
-      return SW_INDEX;
-      }
-   if (0 == strncmp(varname, "VRADH", strlen(varname)))
+   if (0 == strcmp(varname, "Vh"))
       {
       return VR_INDEX;
       }
-   if (0 == strncmp(varname, "WRADH", strlen(varname)))
+   if (0 == strcmp(varname, "V"))
+      {
+      return VR_INDEX;
+      }
+   if (0 == strcmp(varname, "Wh"))
       {
       return SW_INDEX;
       }
+   if (0 == strcmp(varname, "W"))
+      {
+      return SW_INDEX;
+      }
+   if (0 == strcmp(varname, "VRADH"))
+      {
+      return VR_INDEX;
+      }
+   if (0 == strcmp(varname, "WRADH"))
+      {
+      return SW_INDEX;
+      }
+   
    return -1;
    }
 
@@ -1222,7 +1264,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
   char moments[MAX_RADAR_VOLUMES][MAX_HDF_STR];
   char date_tmp[MAX_HDF_STR];
   
-  int pulse, prf;
+  int pulse, prf, prf2, unfolding;
   double r_step, r_sample, r_start, horiz_beam, verti_beam,
     height, lat, lon, min, sec, wavelength;
   float r_min, r_max, scale_factor, elev_header;
@@ -1249,7 +1291,10 @@ Radar *RSL_hdf5_to_radar(char *infile)
    time_t scan_time;
 
    char version_str[MAX_HDF_STR];
+   float nyq_vel = 0;
+   
 
+   
 #ifndef VERSION1_8_0
 //   herr_t (*error_stack)(void*);
    
@@ -1443,7 +1488,13 @@ Radar *RSL_hdf5_to_radar(char *infile)
 
                status = H5Aread(attr, memtype, &var_name);
                H5Aclose(attr);
-               vartype = return_vartype(var_name);
+//               printf("%s\n", var_name);
+               vartype = return_type_var(var_name);
+
+//               printf("%s %d\n", var_name, vartype);
+               
+
+
                
                if (vartype > -1)
                   {
@@ -1587,6 +1638,27 @@ Radar *RSL_hdf5_to_radar(char *infile)
          status = H5Aread(attr, H5T_NATIVE_INT, &prf);
          H5Aclose(attr);
 
+         attr = H5Aopen(how, "unfolding", H5P_DEFAULT);
+         status = H5Aread(attr, H5T_NATIVE_INT, &unfolding);
+         H5Aclose(attr);
+
+//         printf("\n\n\n\n\n%d\n\n\n\n\n", unfolding)
+         
+         switch (unfolding)
+            {
+            case 1:
+               prf2 = prf * 2 / 3;
+               break;
+            case 2:
+               prf2 = prf * 3 / 4;
+               break;
+            case 3:
+               prf2 = prf * 4 / 5;
+               break;
+            default:
+               prf2 = 0;
+               break;
+            }
 
 	 if (H5Aexists(how, "pulse_width_mks"))
 	   {
@@ -1624,6 +1696,13 @@ Radar *RSL_hdf5_to_radar(char *infile)
          status = H5Aread(attr, H5T_NATIVE_FLOAT, &r_max);
          H5Aclose(attr);
 
+         if (VR_INDEX == volindx[n_volume])
+            {
+            nyq_vel = r_max;
+            }
+         
+
+         
          attr = H5Aopen(how, "elevation", H5P_DEFAULT);
          status = H5Aread(attr, H5T_NATIVE_FLOAT, &elev_header);
          H5Aclose(attr);
@@ -1687,13 +1766,13 @@ Radar *RSL_hdf5_to_radar(char *infile)
 	    //ray->h.elev = elev_header;
             ray->h.azimuth = ray_azim0[n_ray];
             ray->h.prf = prf;
+            ray->h.prf2 = prf2;
             ray->h.pulse_width = pulse;
             if (wavelength > 1)
                wavelength = wavelength / 1000;
             ray->h.beam_width = (verti_beam + horiz_beam)/2;
-            /*
-            ray->h.nyq_vel = Scount[i].uvv;
-            */
+            ray->h.wavelength = wavelength;
+            ray->h.nyq_vel = nyq_vel;
             ray->h.f = f;
             ray->h.invf = invf;
             ray->h.nbins = NBINS;
