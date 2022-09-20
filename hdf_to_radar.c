@@ -1257,6 +1257,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
   */
 
   int volindx[DEFINED_VOLUMES];
+  int orig_volindx[DEFINED_VOLUMES];
 
   int vartype = -1;
   
@@ -1491,14 +1492,15 @@ Radar *RSL_hdf5_to_radar(char *infile)
 //               printf("%s\n", var_name);
                vartype = return_type_var(var_name);
 
-//               printf("%s %d\n", var_name, vartype);
                
 
 
                
                if (vartype > -1)
                   {
+                  printf("%s %d %s\n", var_name, vartype, moments[n_volume]);
                   volindx[NVOLUMES] = vartype;
+                  orig_volindx[NVOLUMES] = n_volume;
                   NVOLUMES++;
                   }
                free(var_name);
@@ -1558,7 +1560,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
          if (group < 0)
             continue;
          
-         vol = H5Dopen(group, moments[n_volume], H5P_DEFAULT);
+         vol = H5Dopen(group, moments[orig_volindx[n_volume]], H5P_DEFAULT);
          if (vol < 0)
             continue;
 
@@ -1715,7 +1717,8 @@ Radar *RSL_hdf5_to_radar(char *infile)
          status = H5Aread(attr, memtype, &data_size);
          H5Aclose(attr);
 
-//         printf("RANGE = %d %f %f\n", n_volume, r_min, r_max);
+//         if (0 == n_sweep)
+//            printf("RANGE = %d %d %f %f\n", volindx[n_volume], n_volume, r_min, r_max);
          
          
 	 // r_max = 50;
@@ -1752,6 +1755,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
             ray->h.sec = cal_time->tm_sec;
             
             ray->h.ray_num = n_ray + 1;
+#if 0            
             if (0 == factor_sample)
                {
                ray->h.gate_size = r_step;
@@ -1760,6 +1764,11 @@ Radar *RSL_hdf5_to_radar(char *infile)
                {
                ray->h.gate_size = r_step*r_sample;
                }
+#endif
+
+            ray->h.gate_size = r_step*r_sample;
+
+
             ray->h.range_bin1 = r_start;
             ray->h.elev_num = volume->sweep[n_sweep]->h.sweep_num;
 	    ray->h.elev = (float) ((ray_elev0[n_ray] + ray_elev1[n_ray])/2);
