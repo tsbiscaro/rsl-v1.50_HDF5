@@ -30,7 +30,7 @@ dnl AC_FUNC_SETVBUF_REVERSED
 AC_CHECK_FUNCS(mktime strdup strstr)
 
 dnl I would like lassen to be defined.  Override this in config.h.
-AC_DEFINE(HAVE_LASSEN, 1,
+AC_DEFINE(HAVE_LASSEN, 0,
     [For LASSEN capability.  Change this to '#undef HAVE_LASSEN', if you
      don't want LASSEN.])
 
@@ -85,8 +85,7 @@ if test "$YYWRAP" = ""; then
 fi
 
 AC_MSG_RESULT(LIBS = $LIBS)
-AC_CONFIG_FILES([Makefile colors/Makefile doc/Makefile examples/Makefile 
-		 wsr88d_decode_ar2v/Makefile])
+AC_CONFIG_FILES([Makefile colors/Makefile doc/Makefile wsr88d_decode_ar2v/Makefile])
 AC_OUTPUT
 
 

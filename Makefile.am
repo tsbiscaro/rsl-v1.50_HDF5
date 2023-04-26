@@ -1,7 +1,7 @@
 ## Process w/ automake.  Or, autoreconf; make ##
 ACLOCAL_AMFLAGS = -I m4
 AUTOMAKE_OPTIONS = foreign
-SUBDIRS = . colors doc examples wsr88d_decode_ar2v
+SUBDIRS = . colors doc wsr88d_decode_ar2v
 INCLUDES = -I. -I$(srcdir) -I$(prefix)/include -I$(prefix)/toolkit/include
 includedir = $(prefix)/include 
 colordir = $(libdir)/colors
@@ -12,7 +12,6 @@ librsl_la_LDFLAGS = -version-info 1:50
 librsl_la_SOURCES = \
 $(radtec_c)\
 dorade.c dorade_print.c dorade_to_radar.c\
-lassen.c lassen_to_radar.c \
 edge_to_radar.c \
  radar.c volume.c image_gen.c cappi.c fraction.c read_write.c farea.c \
  range.c radar_to_uf.c uf_to_radar.c wsr88d_to_radar.c \
@@ -31,7 +30,7 @@ librsl_la_DEPENDENCIES = $(build_headers)
 
 build_headers = rsl.h wsr88d.h toolkit_1BC-51_appl.h
 
-headers = africa.h dorade.h lassen.h \
+headers = africa.h dorade.h \
           mcgill.h nsig.h radtec.h rainbow.h \
           rapic_routines.h toga.h \
 		  $(build_headers)
