@@ -169,7 +169,6 @@ Radar *RSL_anyformat_to_radar(char *infile, ...)
 #endif
   case RAINBOW_FILE: radar = RSL_rainbow_to_radar(infile); break;
   case  MCGILL_FILE: radar = RSL_mcgill_to_radar(infile); break;
-  case  LASSEN_FILE: radar = RSL_lassen_to_radar(infile); break;
   case  DORADE_FILE: radar = RSL_dorade_to_radar(infile); break;
   case  HDF5_FILE: radar = RSL_hdf5_to_radar(infile);    break;
 
