@@ -4,10 +4,11 @@ flex
 libfl-dev
 libbz2-dev
 zlib1g-dev
-libhdf5-serial-dev
+libhdf5-serial-dev (or libghdf5-dev, depending on the system)
 autoconf
 automake
-m4
+make
+libtool
 
 How to compile:
 
