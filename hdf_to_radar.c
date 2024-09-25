@@ -83,7 +83,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
    {
   hid_t file, scan, vol, attr, dataspace, memspace, how,
     header, elev0, elev1, azim0, azim1, what, memtype, where,
-    time;
+     time, dset;
   int status;
   int variavel;
   
@@ -131,6 +131,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
   
   time_t scan_time;
   H5T_class_t class_id;
+  int dtype_size;
   hsize_t dims2;
   size_t sz2;
   
@@ -155,7 +156,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
   if (file < 0)
      {
      printf("ERRO\n");
-     return (-1);
+     return NULL;
      }
 
 
@@ -171,7 +172,6 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
          break;
          }
       }
-     
   
   how = H5Gopen(file, "/how", H5P_DEFAULT);
   what = H5Gopen(file, "/what", H5P_DEFAULT);
@@ -184,13 +184,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
    status = H5Aread(attr, memtype, &version_str);
    H5Tclose(memtype);
    H5Aclose(attr);
-   
-   if (0 != strncmp(version_str, "H5rad 2.1", 9))
-      {
-      printf("Versao invalida do HDF (deveria ser 2.1 - Santa Catarina)\n");
-      return 0;
-      }
-   
+
    attr = H5Aopen(where, "height", H5P_DEFAULT);
    status = H5Aread(attr, H5T_NATIVE_DOUBLE, &height);
    H5Aclose(attr);
@@ -441,16 +435,22 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
             
          H5Gclose(what);
          
-         status = H5LTget_dataset_info(vol, "data", &dims2, &class_id, &sz2);
-         /*Why the HDF5 library says a char is a INTEGER? WHYYY?*/
-         if (H5T_INTEGER == class_id)
+         //status = H5LTget_dataset_info(vol, "data", &dims2, &class_id, &sz2);
+
+         //check for datatype size - char or integer
+         //Returns the size in bytes of the dataset's datatype.
+         dset = H5Dopen1(vol, "data");
+         dtype_size = H5LDget_dset_type_size(dset, NULL);
+         status = H5Dclose(dset);
+         
+         if (1 == dtype_size)
             {
-            image = (unsigned char *) malloc(NRAYS*NBINS*sizeof(unsigned char));
+            image = (unsigned char *) malloc(NRAYS*NBINS*dtype_size);
             status = H5LTread_dataset (vol, "data", H5T_NATIVE_UCHAR, image);
             }
          else
             {
-            image16 = (float *) malloc(NRAYS*NBINS*sizeof(float));
+            image16 = (short int *) malloc(NRAYS*NBINS*dtype_size);
             status = H5LTread_dataset (vol, "data", H5T_NATIVE_SHORT, image16);
             }
          
@@ -549,7 +549,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
             ray->h.invf = invf;
             ray->h.nbins = NBINS;
             /*AGAIN: Why the HDF5 library says a char is a INTEGER? WHYYY?*/
-            if (H5T_INTEGER != class_id)
+            if (1 != dtype_size)
                {
                for (n_bin = 0; n_bin < NBINS; n_bin++)
                   {
@@ -585,13 +585,13 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
             }
          
 //         printf("volume %s\t MAX = %10.4f   MIN = %10.4f  GAIN = %10.4f  OFFSET = %10.4f\n", var_name, vmax, vmin, gain, offset);
-         if (H5T_INTEGER == class_id)
+         if (1 == dtype_size)
             {   
             free(image);
             }
          else
             {
-            free(image32);
+            free(image16);
             }
          H5Gclose(vol);
          }
@@ -694,7 +694,7 @@ Radar *RSL_hdf5_ODIM_EDGE55_to_radar(char *infile)
   if (file < 0)
      {
      printf("ERRO\n");
-     return (-1);
+     return NULL;
      }
 
 
@@ -991,6 +991,8 @@ Radar *RSL_hdf5_ODIM_EDGE55_to_radar(char *infile)
          H5Gclose(how);
             
          status = H5LTget_dataset_info(vol, "data", &dims2, &class_id, &sz2);
+//         printf("55 VOL = %d  CLASS = %d\n", voltype, class_id);
+
          if (H5T_INTEGER == class_id)
             {
             image = (unsigned char *) malloc(NRAYS*NBINS*sizeof(unsigned char));
@@ -1310,7 +1312,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
    if (file < 0)
       {
       printf("ERRO\n");
-      return (-1);
+      return NULL;
       }
 
 
@@ -1334,6 +1336,16 @@ Radar *RSL_hdf5_to_radar(char *infile)
    status = H5Aread(attr, memtype, &version_str);
    H5Tclose(memtype);
    H5Aclose(attr);
+   
+   /*
+   todos os EDGE foram atualizados e nao ha mais dados
+   na versao 5.5
+   Deixando aqui para retrocompatibilidade - ODIM v 2.1/Edge 5.5
+
+   No EDGE 5.5 o R do H5Rad esta em maiusculo
+   
+   */
+   
    if (0 == strncmp(version_str, "H5Rad 2.1", 9))
       {
       H5Gclose(how);
@@ -1342,8 +1354,16 @@ Radar *RSL_hdf5_to_radar(char *infile)
       H5Fclose(file);
       return RSL_hdf5_ODIM_EDGE55_to_radar(arquivo);
       }
+
+   /*
+   agora temos que verificar se vai
+   dar continuidade como ODIMou GAMIC
+
+   ODIM possui H5rad na versao, depois o numero (atualmente 2.1 ou 2.2)
    
-   if (0 == strncmp(version_str, "H5rad 2.1", 9))
+   */
+   
+   if (0 == strncmp(version_str, "H5rad", 5))
       {
       H5Gclose(how);
       H5Gclose(what);
@@ -1351,7 +1371,6 @@ Radar *RSL_hdf5_to_radar(char *infile)
       H5Fclose(file);
       return RSL_hdf5_ODIM_EDGE62_to_radar(arquivo);
       }
-   
    
    attr = H5Aopen(how, "azimuth_beam", H5P_DEFAULT);
    status = H5Aread(attr, H5T_NATIVE_DOUBLE, &horiz_beam);
@@ -1498,7 +1517,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
                
                if (vartype > -1)
                   {
-                  printf("%s %d %s\n", var_name, vartype, moments[n_volume]);
+//                  printf("%s %d %s\n", var_name, vartype, moments[n_volume]);
                   volindx[NVOLUMES] = vartype;
                   orig_volindx[NVOLUMES] = n_volume;
                   NVOLUMES++;
