@@ -134,7 +134,6 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
   int dtype_size;
   hsize_t dims2;
   size_t sz2;
-  
 
   Radar *radar = NULL;
   Sweep *sweep = NULL;
@@ -435,14 +434,13 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
             
          H5Gclose(what);
          
-         //status = H5LTget_dataset_info(vol, "data", &dims2, &class_id, &sz2);
-
-         //check for datatype size - char or integer
+        status = H5LTget_dataset_info(vol, "data", &dims2, &class_id, &sz2);
+		 //check for datatype size - char or integer
          //Returns the size in bytes of the dataset's datatype.
          dset = H5Dopen1(vol, "data");
-         dtype_size = H5LDget_dset_type_size(dset, NULL);
-         status = H5Dclose(dset);
-         
+		 dtype_size = H5Tget_size(H5Dget_type(dset));
+		 H5Dclose(dset);
+		 
          if (1 == dtype_size)
             {
             image = (unsigned char *) malloc(NRAYS*NBINS*dtype_size);
@@ -452,7 +450,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
             {
             image16 = (short int *) malloc(NRAYS*NBINS*dtype_size);
             status = H5LTread_dataset (vol, "data", H5T_NATIVE_SHORT, image16);
-            }
+			}
          
          switch (voltype)
             {
