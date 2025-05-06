@@ -1269,7 +1269,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
   
   int pulse, prf, prf2, unfolding;
   double r_step, r_sample, r_start, horiz_beam, verti_beam,
-    height, lat, lon, min, sec, wavelength;
+     height, lat, lon, min, sec, wavelength, scan_speed;
   float r_min, r_max, scale_factor, elev_header;
   char arquivo[MAX_HDF_STR];
   
@@ -1510,10 +1510,6 @@ Radar *RSL_hdf5_to_radar(char *infile)
                H5Aclose(attr);
 //               printf("%s\n", var_name);
                vartype = return_type_var(var_name);
-
-               
-
-
                
                if (vartype > -1)
                   {
@@ -1653,6 +1649,9 @@ Radar *RSL_hdf5_to_radar(char *infile)
                           H5P_DEFAULT, timestamp);
          H5Tclose(time);
 
+         attr = H5Aopen(how, "scan_speed", H5P_DEFAULT);
+         status = H5Aread(attr, H5T_NATIVE_DOUBLE, &scan_speed);
+         H5Aclose(attr);
          
          /*reading sweep and moment info*/
          attr = H5Aopen(how, "PRF", H5P_DEFAULT);
@@ -1662,8 +1661,6 @@ Radar *RSL_hdf5_to_radar(char *infile)
          attr = H5Aopen(how, "unfolding", H5P_DEFAULT);
          status = H5Aread(attr, H5T_NATIVE_INT, &unfolding);
          H5Aclose(attr);
-
-//         printf("\n\n\n\n\n%d\n\n\n\n\n", unfolding)
          
          switch (unfolding)
             {
@@ -1689,10 +1686,10 @@ Radar *RSL_hdf5_to_radar(char *infile)
 	   {
 	   attr = H5Aopen(how, "pulse_width_us", H5P_DEFAULT);
 	   }
-
+         
          status = H5Aread(attr, H5T_NATIVE_INT, &pulse);
          H5Aclose(attr);
-
+         
          attr = H5Aopen(how, "radar_wave_length", H5P_DEFAULT);
          status = H5Aread(attr, H5T_NATIVE_DOUBLE, &wavelength);
          H5Aclose(attr);
@@ -1716,7 +1713,7 @@ Radar *RSL_hdf5_to_radar(char *infile)
          attr = H5Aopen(vol, "dyn_range_max", H5P_DEFAULT);
          status = H5Aread(attr, H5T_NATIVE_FLOAT, &r_max);
          H5Aclose(attr);
-
+         
          if (VR_INDEX == volindx[n_volume])
             {
             nyq_vel = r_max;
@@ -1759,7 +1756,9 @@ Radar *RSL_hdf5_to_radar(char *infile)
          volume->sweep[n_sweep]->h.beam_width = (verti_beam + horiz_beam)/2;
          volume->sweep[n_sweep]->h.vert_half_bw = verti_beam / 2;
          volume->sweep[n_sweep]->h.horz_half_bw = horiz_beam / 2;
-	 //         printf("ELEV: %f\n", elev_header);
+         printf("ELEVACAO: %f\n", elev_header);
+         printf("#azim elevacao azimute\n");
+         
          for (n_ray = 0; n_ray < NRAYS; n_ray++)
             {
             ray = RSL_new_ray(NBINS);
@@ -1793,6 +1792,10 @@ Radar *RSL_hdf5_to_radar(char *infile)
 	    ray->h.elev = (float) ((ray_elev0[n_ray] + ray_elev1[n_ray])/2);
 	    //ray->h.elev = elev_header;
             ray->h.azimuth = ray_azim0[n_ray];
+
+            printf("%03d %05.2f %05.2f\n", n_ray, ray->h.elev, ray_azim0[n_ray]);
+            
+            ray->h.azim_rate = scan_speed;
             ray->h.prf = prf;
             ray->h.prf2 = prf2;
             ray->h.pulse_width = pulse;
