@@ -1277,26 +1277,26 @@ Radar *RSL_hdf5_to_radar(char *infile)
   int *data_out = NULL;
   double *ray_elev0 = NULL, *ray_elev1 = NULL;
   double *ray_azim0 = NULL, *ray_azim1 = NULL;
-   unsigned long long *timestamp = NULL;
-   char *date_time = NULL, *var_name = NULL,
+  unsigned long long *timestamp = NULL;
+  char *date_time = NULL, *var_name = NULL,
       *template_name = NULL, *data_size = NULL;
-   Radar *radar = NULL;
-   Sweep *sweep = NULL;
-   Volume *volume = NULL;
-   Ray *ray = NULL;
-   struct tm *cal_time = NULL;
+  Radar *radar = NULL;
+  Sweep *sweep = NULL;
+  Volume *volume = NULL;
+  Ray *ray = NULL;
+  struct tm *cal_time = NULL;
 
-   static float (*f)(Range x);
-   static Range (*invf)(float x);
+  static float (*f)(Range x);
+  static Range (*invf)(float x);
 
-   int NSWEEPS, NVOLUMES, NRAYS, NBINS;
+  int NSWEEPS, NVOLUMES, NRAYS, NBINS;
 
-   time_t scan_time;
+  time_t scan_time;
 
-   char version_str[MAX_HDF_STR];
-   float nyq_vel = 0;
-   
-
+  char version_str[MAX_HDF_STR];
+  float nyq_vel = 0;
+  /*suppress error messages*/ 
+  H5Eset_auto2(H5E_DEFAULT, NULL, NULL);
    
 #ifndef VERSION1_8_0
 //   herr_t (*error_stack)(void*);
@@ -1756,8 +1756,6 @@ Radar *RSL_hdf5_to_radar(char *infile)
          volume->sweep[n_sweep]->h.beam_width = (verti_beam + horiz_beam)/2;
          volume->sweep[n_sweep]->h.vert_half_bw = verti_beam / 2;
          volume->sweep[n_sweep]->h.horz_half_bw = horiz_beam / 2;
-         printf("ELEVACAO: %f\n", elev_header);
-         printf("#azim elevacao azimute\n");
          
          for (n_ray = 0; n_ray < NRAYS; n_ray++)
             {
@@ -1793,7 +1791,6 @@ Radar *RSL_hdf5_to_radar(char *infile)
 	    //ray->h.elev = elev_header;
             ray->h.azimuth = ray_azim0[n_ray];
 
-            printf("%03d %05.2f %05.2f\n", n_ray, ray->h.elev, ray_azim0[n_ray]);
             
             ray->h.azim_rate = scan_speed;
             ray->h.prf = prf;
@@ -1810,7 +1807,6 @@ Radar *RSL_hdf5_to_radar(char *infile)
             ray->range[NBINS - 1] = invf(NOECHO);
             for (n_bin = 0; n_bin < NBINS - 1; n_bin++)
                {
-		 //printf("%d %d %d\n", n_ray, n_bin, data_out[n_ray*NBINS + n_bin]);
                if (data_out[n_ray*NBINS + n_bin] == 0)
                   {
                   ray->range[n_bin] = invf(NOECHO);
