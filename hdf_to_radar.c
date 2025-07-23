@@ -55,6 +55,8 @@ Cachoeira Paulista/SP 12630000 Brazil
 #define MAX_HDF_STR 255
 #define MAXSWEEPS 40
 
+#if 0
+
 int return_vartype(char *var)
    {
      char *nome_var[DEFINED_VOLUMES] = {"Z", "UZ", "V",
@@ -77,7 +79,7 @@ int return_vartype(char *var)
    return (-1);
    }
 
-
+#endif
 
 Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
    {
@@ -442,7 +444,8 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
          dset = H5Dopen1(vol, "data");
          dtype_size = H5LDget_dset_type_size(dset, NULL);
          status = H5Dclose(dset);
-         
+                  //H5T_STD_I8LE
+
          if (1 == dtype_size)
             {
             image = (unsigned char *) malloc(NRAYS*NBINS*dtype_size);
@@ -583,8 +586,7 @@ Radar *RSL_hdf5_ODIM_EDGE62_to_radar(char *infile)
                }
             volume[n_volume]->sweep[n_sweep]->ray[n_ray] = ray;
             }
-         
-//         printf("volume %s\t MAX = %10.4f   MIN = %10.4f  GAIN = %10.4f  OFFSET = %10.4f\n", var_name, vmax, vmin, gain, offset);
+         printf("volume %s\t MAX = %10.4f   MIN = %10.4f  GAIN = %10.4f  OFFSET = %10.4f\n", var_name, vmax, vmin, gain, offset);
          if (1 == dtype_size)
             {   
             free(image);
@@ -1188,6 +1190,14 @@ int return_type_var(char *varname)
       {
       return KD_INDEX;
       }
+   if (0 == strcmp(varname, "dBuZ"))
+      {
+      return DZ_INDEX;
+      }
+   if (0 == strcmp(varname, "dBZ"))
+      {
+      return CZ_INDEX;
+      }
    if (0 == strcmp(varname, "TH"))
       {
       return DZ_INDEX;
@@ -1197,6 +1207,10 @@ int return_type_var(char *varname)
       return CZ_INDEX;
       }
    if (0 == strcmp(varname, "Z"))
+      {
+      return CZ_INDEX;
+      }
+   if (0 == strcmp(varname, "Zh"))
       {
       return CZ_INDEX;
       }
